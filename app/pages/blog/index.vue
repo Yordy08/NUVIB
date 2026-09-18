@@ -1,0 +1,5 @@
+<script setup lang="ts">
+const { data: publications } = await useFetch<any[]>('/api/publications')
+</script>
+
+<template><section class="catalog-page container"><div class="catalog-header"><div><p class="eyebrow">IDEAS NUVIB</p><h1>Para vivir mejor</h1><p>Consejos, inspiración y formas de disfrutar lo que eliges.</p></div></div><div class="products-grid"><article v-for="publication in publications" :key="publication._id" class="product-card"><NuxtLink :to="`/blog/${publication.slug}`" class="product-image-wrap"><img v-if="publication.image" :src="publication.image" :alt="publication.title" class="product-image"></NuxtLink><div class="product-info"><p class="eyebrow">{{ new Date(publication.publishedAt).toLocaleDateString('es-CO') }}</p><NuxtLink :to="`/blog/${publication.slug}`" class="product-name">{{ publication.title }}</NuxtLink><NuxtLink :to="`/blog/${publication.slug}`" class="table-action">Leer publicación →</NuxtLink></div></article></div><div v-if="!publications?.length" class="empty-state"><h2>Pronto tendremos novedades</h2><p>Estamos preparando contenido para ti.</p></div></section></template>

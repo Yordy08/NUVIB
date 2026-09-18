@@ -1,0 +1,61 @@
+<script setup lang="ts">
+definePageMeta({ layout: 'admin', middleware: 'admin' })
+
+const { data: publications, refresh } = await useFetch<any[]>('/api/admin/publications')
+const form = reactive({ title: '', content: '', image: '', status: 'BORRADOR', featured: false, socialProof: '', productEnabled: true, productPrice: '', productStock: '', productCategory: 'General', productSku: '' })
+const editor = ref<HTMLElement | null>(null)
+const imageFiles = ref<File[]>([])
+const imageUrls = ref<string[]>([])
+const imagePreview = ref('')
+const saving = ref(false)
+const uploading = ref(false)
+const message = ref('')
+const filter = ref('')
+const statusFilter = ref('TODOS')
+const editingId = ref('')
+const deleteTarget = ref<any | null>(null)
+
+const filteredPublications = computed(() => (publications.value || []).filter(publication => publication.title.toLowerCase().includes(filter.value.toLowerCase()) && (statusFilter.value === 'TODOS' || publication.status === statusFilter.value)))
+const formatDate = (value: string) => new Date(value).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
+const syncContent = () => { form.content = editor.value?.innerText || '' }
+const format = (command: string) => { editor.value?.focus(); document.execCommand(command); syncContent() }
+const selectImage = async (event: Event) => {
+  const files = Array.from((event.target as HTMLInputElement).files || []).filter(file => file.type.startsWith('image/'))
+  if (!files.length) return
+  imageFiles.value = [...imageFiles.value, ...files]; imagePreview.value = imagePreview.value || URL.createObjectURL(files[0]); uploading.value = true; message.value = ''
+  try {
+    for (const file of files) { const data = new FormData(); data.append('image', file); const result = await $fetch<{ url: string }>('/api/admin/products/upload', { method: 'POST', body: data }); imageUrls.value.push(result.url) }
+    form.image = imageUrls.value[0] || ''; message.value = `${imageUrls.value.length} imagen(es) cargada(s) correctamente`
+  } catch { message.value = 'No se pudo cargar una de las imágenes' } finally { uploading.value = false }
+}
+const removeImage = (index: number) => { imageUrls.value.splice(index, 1); imageFiles.value.splice(index, 1); form.image = imageUrls.value[0] || ''; imagePreview.value = imageUrls.value[0] || '' }
+const resetForm = () => { editingId.value = ''; Object.assign(form, { title: '', content: '', image: '', status: 'BORRADOR', featured: false, socialProof: '', productEnabled: true, productPrice: '', productStock: '', productCategory: 'General', productSku: '' }); if (editor.value) editor.value.innerHTML = ''; imageFiles.value = []; imageUrls.value = []; imagePreview.value = '' }
+const editPublication = async (publication: any) => { editingId.value = publication._id; imageUrls.value = publication.image ? [publication.image] : []; Object.assign(form, { title: publication.title, content: publication.content, image: publication.image || '', status: publication.status, featured: Boolean(publication.featured), socialProof: publication.socialProof || '' }); await nextTick(); if (editor.value) editor.value.innerText = publication.content || ''; window.scrollTo({ top: 0, behavior: 'smooth' }) }
+const savePublication = async () => {
+  syncContent(); saving.value = true; message.value = ''
+  try { const body = { title: form.title, content: form.content, image: form.image, status: form.status, featured: form.featured, socialProof: form.socialProof, product: { enabled: form.productEnabled, price: form.productPrice, stock: form.productStock, category: form.productCategory, sku: form.productSku, images: imageUrls.value } }; await $fetch(editingId.value ? `/api/admin/publications/${editingId.value}` : '/api/admin/publications', { method: editingId.value ? 'PATCH' : 'POST', body }); const wasEditing = Boolean(editingId.value); resetForm(); message.value = wasEditing ? 'Publicación actualizada correctamente.' : 'Publicación y producto guardados'; await refresh() } catch (error: any) { message.value = error?.data?.message || 'No se pudo guardar la publicación' } finally { saving.value = false }
+}
+const togglePublication = async (publication: any) => { try { await $fetch(`/api/admin/publications/${publication._id}`, { method: 'PATCH', body: { title: publication.title, content: publication.content, image: publication.image, status: publication.status === 'PUBLICADA' ? 'DESPUBLICADA' : 'PUBLICADA', featured: publication.featured, socialProof: publication.socialProof } }); message.value = publication.status === 'PUBLICADA' ? 'Publicación despublicada.' : 'Publicación publicada.'; await refresh() } catch (error: any) { message.value = error?.data?.message || 'No se pudo cambiar el estado.' } }
+const confirmDelete = async () => { if (!deleteTarget.value) return; try { await $fetch(`/api/admin/publications/${deleteTarget.value._id}`, { method: 'DELETE' }); message.value = 'Publicación eliminada correctamente.'; deleteTarget.value = null; await refresh() } catch (error: any) { message.value = error?.data?.message || 'No se pudo eliminar la publicación.'; deleteTarget.value = null } }
+</script>
+
+<template>
+  <div class="admin-page publications-admin">
+    <div class="admin-page-heading"><div><p class="eyebrow">CONTENIDO</p><h1>Publicaciones</h1><p>Crea contenido útil para acompañar tu catálogo.</p></div><div class="admin-heading-actions"><button class="admin-icon-button" aria-label="Notificaciones">♧</button><button class="admin-avatar" aria-label="Perfil">N</button></div></div>
+     <div class="publication-layout publication-layout-new">
+       <form class="admin-form-card publication-editor-card" @submit.prevent="savePublication">
+         <div class="card-heading"><div><span class="card-kicker">EDITOR</span><h2>{{ editingId ? 'Editar publicación' : 'Nueva publicación' }}</h2></div><div><span class="draft-indicator">● {{ form.status }}</span><button v-if="editingId" type="button" class="form-cancel-link" @click="resetForm">Cancelar</button></div></div>
+        <label>Título<div class="field-with-status"><input v-model="form.title" required placeholder="Ej. Cómo elegir tu próxima lámpara"><span>✓</span></div></label>
+         <div class="image-upload"><div v-if="imagePreview || form.image" class="image-preview"><img :src="imagePreview || form.image" alt="Vista previa de la publicación"></div><div v-else class="image-placeholder"><span>▧</span><small>Vista previa</small></div><label class="upload-button">{{ uploading ? 'Cargando...' : 'Cargar imágenes' }}<input type="file" accept="image/*" multiple @change="selectImage"></label><div v-if="imageUrls.length" class="publication-image-thumbnails"><div v-for="(image, index) in imageUrls" :key="image"><img :src="image" :alt="`Imagen ${index + 1} de la publicación`"><button type="button" @click="removeImage(index)">×</button></div></div></div>
+        <label>Contenido<div class="rich-editor"><div class="editor-toolbar"><button type="button" title="Negrita" @click="format('bold')"><strong>B</strong></button><button type="button" title="Cursiva" @click="format('italic')"><em>I</em></button><button type="button" title="Subrayado" @click="format('underline')"><u>U</u></button><span></span><button type="button" title="Lista" @click="format('insertUnorderedList')">☷</button><button type="button" title="Enlace" @click="format('createLink')">↗</button></div><div ref="editor" class="editor-content" contenteditable="true" data-placeholder="Escribe el contenido..." @input="syncContent"></div></div></label>
+        <div class="publication-options"><label class="toggle-label"><span class="flash-icon">◷</span><span><strong>Destacar en Ofertas Relámpago</strong><small>Mostrar esta publicación como destacada</small></span><input v-model="form.featured" type="checkbox" class="toggle-input"><i class="toggle-track"></i></label><label>Mostrar Prueba Social<select v-model="form.socialProof"><option value="">No mostrar</option><option>4 personas compraron hace poco</option><option>Reseñas de 5 estrellas</option></select></label></div>
+         <label>Estado<select v-model="form.status"><option>BORRADOR</option><option>PUBLICADA</option><option>PROGRAMADA</option><option>DESPUBLICADA</option></select></label>
+          <div class="publication-product-fields"><label class="toggle-label"><span><strong>También crear producto</strong><small>Lo mostrará en el catálogo y permitirá comprarlo.</small></span><input v-model="form.productEnabled" type="checkbox" class="toggle-input"><i class="toggle-track"></i></label><div class="form-row"><label>Precio<input v-model="form.productPrice" type="number" min="0" placeholder="0" :required="form.productEnabled"></label><label>Disponibles<input v-model="form.productStock" type="number" min="0" placeholder="0" :required="form.productEnabled"></label></div><div class="form-row"><label>Categoría<input v-model="form.productCategory" placeholder="General" :required="form.productEnabled"></label><label>Código del producto<input v-model="form.productSku" placeholder="Opcional"></label></div></div>
+         <p v-if="message" :class="message.includes('No se') ? 'form-error' : 'form-success'">{{ message }}</p><button class="button publication-save" :disabled="saving || uploading">{{ saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Guardar publicación' }} <span>↗</span></button>
+      </form>
+       <div class="admin-form-card recent-publications-card"><div class="card-heading"><div><span class="card-kicker">BIBLIOTECA</span><h2>Contenido reciente</h2></div><span class="content-count">{{ filteredPublications.length }}</span></div><div class="publication-filter"><span>⌕</span><input v-model="filter" placeholder="Buscar por título"><select v-model="statusFilter"><option value="TODOS">Todos</option><option value="PUBLICADA">Publicadas</option><option value="BORRADOR">Borradores</option><option value="DESPUBLICADA">Ocultas</option></select></div><div v-if="!filteredPublications.length" class="recent-empty"><span>✦</span><p>No hay publicaciones con estos filtros.</p><small>Prueba otra búsqueda o crea una nueva.</small></div><div v-for="publication in filteredPublications" :key="publication._id" class="recent-publication"><div class="recent-thumb"><img v-if="publication.image" :src="publication.image" :alt="publication.title"><span v-else>✦</span></div><div class="recent-info"><strong>{{ publication.title }}</strong><small>{{ formatDate(publication.updatedAt) }} · <b :class="`status-${publication.status.toLowerCase()}`">{{ publication.status }}</b></small><span class="recent-views">↗ {{ (publication.views || 0).toLocaleString('es-CO') }} Visitas</span></div><div class="publication-actions"><button type="button" class="table-action" @click="editPublication(publication)">Editar</button><button type="button" class="table-action" @click="togglePublication(publication)">{{ publication.status === 'PUBLICADA' ? 'Despublicar' : 'Publicar' }}</button><button type="button" class="table-action product-delete-action" @click="deleteTarget = publication">Eliminar</button></div></div></div>
+     </div>
+     <div v-if="deleteTarget" class="admin-modal-backdrop" @click.self="deleteTarget = null"><section class="admin-modal" role="dialog" aria-modal="true"><h2>¿Eliminar publicación?</h2><p>Esta acción eliminará la publicación del contenido de NUVIB.</p><div class="admin-modal-actions"><button type="button" class="button is-light" @click="deleteTarget = null">Cancelar</button><button type="button" class="button product-delete-button" @click="confirmDelete">Eliminar</button></div></section></div>
+    <footer class="admin-page-footer">Acerca de NUVIB <span>v1.0</span></footer>
+  </div>
+</template>

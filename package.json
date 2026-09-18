@@ -1,0 +1,23 @@
+{
+  "name": "nuvib",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "db:init": "node --env-file=.env scripts/init-db.mjs",
+    "cloudinary:test": "node --env-file=.env scripts/test-cloudinary.mjs",
+    "admin:create": "node --env-file=.env scripts/create-admin.mjs",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "bulma": "^1.0.4",
+    "cloudinary": "^2.11.0",
+    "mongodb": "^7.6.0",
+    "nuxt": "^4.5.2",
+    "vue": "^3.5.42",
+    "vue-router": "^5.3.1"
+  }
+}

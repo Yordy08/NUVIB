@@ -1,0 +1,7 @@
+<script setup lang="ts">
+definePageMeta({ layout: false })
+const route = useRoute(); const form = reactive({ identifier: '', password: '' }); const errorMessage = ref(''); const submitting = ref(false)
+const login = async () => { submitting.value = true; errorMessage.value = ''; try { await $fetch('/api/auth/login', { method: 'POST', body: form }); await navigateTo(String(route.query.redirect || '/admin')) } catch (error: any) { errorMessage.value = error?.data?.message || 'No pudimos iniciar sesión.' } finally { submitting.value = false } }
+</script>
+
+<template><div class="admin-login"><div class="admin-login-card"><div class="brand"><img class="brand-logo" src="/Logo/logotip.jpg" alt="NUVIB"></div><p class="eyebrow">ÁREA PRIVADA</p><h1>Bienvenido de nuevo.</h1><p class="login-subtitle">Ingresa para gestionar la operación de tu tienda.</p><form @submit.prevent="login"><label>Usuario o correo<input v-model="form.identifier" type="text" required autocomplete="username"></label><label>Contraseña<input v-model="form.password" type="password" required autocomplete="current-password"></label><p v-if="errorMessage" class="form-error">{{ errorMessage }}</p><button class="button is-dark is-fullwidth" :disabled="submitting">{{ submitting ? 'Validando...' : 'Iniciar sesión' }} <span>↗</span></button></form><NuxtLink to="/" class="login-back">← Volver a la tienda</NuxtLink></div></div></template>
