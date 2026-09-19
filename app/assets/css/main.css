@@ -117,3 +117,5 @@ a { color: inherit; text-decoration: none; }
 .products-grid>.product-card .product-status{color:#71858c;font-weight:700}
 .products-grid>.product-card .product-badges{display:flex;flex-wrap:wrap;gap:5px}
 .products-grid>.product-card .product-badges span{background:#fff1eb;border:1px solid #ffd2c4;border-radius:4px;color:#d95a3c;font-size:10px;font-weight:700;padding:4px 6px}
+
+.checkout-form select{background:#fff;border:1px solid var(--line);border-radius:6px;color:var(--ink);cursor:pointer;display:block;font:inherit;font-size:13px;margin-top:7px;outline:0;padding:12px 34px 12px 12px;width:100%;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--blue) 50%),linear-gradient(135deg,var(--blue) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;background-repeat:no-repeat;background-size:5px 5px,5px 5px}.checkout-form select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(62,78,181,.1)}.checkout-form select:disabled{background-color:#f4f5f8;color:#9aa3b5;cursor:not-allowed}
