@@ -3,7 +3,7 @@ import { getDatabase } from '../utils/mongodb'
 import { ORDER_STATUSES } from '../utils/orders'
 import { getActivePromotionalPrice } from '../utils/conversion'
 
-type OrderRequest = { customer?: { name?: string; firstName?: string; lastName?: string; phone?: string; email?: string }; delivery?: { country?: string; department?: string; city?: string; address?: string; additional?: string }; items?: { slug?: string; quantity?: number }[] }
+type OrderRequest = { customer?: { name?: string; firstName?: string; lastName?: string; phone?: string; email?: string }; delivery?: { country?: string; department?: string; city?: string; address?: string; additional?: string }; items?: { slug?: string; quantity?: number; size?: string; color?: string }[] }
 
 const clean = (value: unknown, max = 180) => typeof value === 'string' ? value.trim().slice(0, max) : ''
 
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     const product = productMap.get(clean(item.slug, 120))
     const quantity = Number(item.quantity)
     if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > product.stock) throw createError({ statusCode: 400, statusMessage: 'Uno de los productos no está disponible en la cantidad solicitada' })
-    const price = getActivePromotionalPrice(product); return { productId: product._id, slug: product.slug, name: product.name, sku: product.sku || '', price, quantity, total: price * quantity }
+    const size = clean(item.size, 40); const color = clean(item.color, 40); if (size && !product.options?.sizes?.includes(size) || color && !product.options?.colors?.includes(color)) throw createError({ statusCode: 400, statusMessage: 'Una de las opciones del producto ya no está disponible' }); const price = getActivePromotionalPrice(product); return { productId: product._id, slug: product.slug, name: product.name, sku: product.sku || '', size: size || undefined, color: color || undefined, price, quantity, total: price * quantity }
   })
   const subtotal = items.reduce((sum, item) => sum + item.total, 0)
   const orderNumber = `NV-${Date.now().toString().slice(-8)}-${randomUUID().slice(0, 4).toUpperCase()}`

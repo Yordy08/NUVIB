@@ -8,7 +8,8 @@ const formatPrice = (value: number) => new Intl.NumberFormat('es-CO', { style: '
 if (error.value) throw createError({ statusCode: 404, statusMessage: 'Producto no encontrado' })
 const images = computed(() => product.value?.images?.length ? product.value.images : [product.value?.image || '/Logo/logotip.jpg'])
 const currentImage = computed(() => images.value[selectedImage.value] || images.value[0])
-const addToCart = () => { for (let index = 0; index < quantity.value; index += 1) cart.add(product.value!.slug); cartFeedback.show(product.value!.name) }
+const { selection } = useProductOptions(String(route.params.slug))
+const addToCart = () => { if (product.value?.options?.sizes?.length && !selection.value.size || product.value?.options?.colors?.length && !selection.value.color) return; for (let index = 0; index < quantity.value; index += 1) cart.add(product.value!.slug, selection.value); cartFeedback.show(product.value!.name) }
 useHead(() => ({ script: [{ type: 'application/ld+json', children: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: product.value?.name, image: images.value, description: product.value?.description, offers: { '@type': 'Offer', priceCurrency: 'COP', price: product.value?.price, availability: 'https://schema.org/InStock' }, ...(reviewData.value?.summary?.total ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: reviewData.value.summary.average, reviewCount: reviewData.value.summary.total } } : {}) }) }] }))
 const selectImage = (index: number) => { selectedImage.value = index }
 const nextImage = () => { selectedImage.value = (selectedImage.value + 1) % images.value.length }

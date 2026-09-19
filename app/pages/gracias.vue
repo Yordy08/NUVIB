@@ -37,7 +37,7 @@ const copyOrder = async () => { await navigator.clipboard.writeText(order.value.
       <div class="thanks-grid">
         <section class="thanks-card order-received-card">
           <div class="thanks-card-heading"><div><p class="eyebrow">RESUMEN DE SOLICITUD</p><h2>{{ order.orderNumber }}</h2></div><span class="order-status-pill">{{ order.status }}</span></div>
-          <div class="thanks-order-items"><div v-for="item in data.items" :key="item.slug" class="thanks-order-item"><div><strong>{{ item.name }}</strong><small>Cantidad: {{ item.quantity }}</small></div><strong>{{ money(item.total) }}</strong></div></div>
+          <div class="thanks-order-items"><div v-for="item in data.items" :key="item.slug" class="thanks-order-item"><div><strong>{{ item.name }}</strong><small>{{ item.size ? `Talla: ${item.size} · ` : '' }}{{ item.color ? `Color: ${item.color} · ` : '' }}Cantidad: {{ item.quantity }}</small></div><strong>{{ money(item.total) }}</strong></div></div>
           <div class="thanks-total"><span>Total solicitado</span><strong>{{ money(order.total) }}</strong></div>
           <div class="thanks-meta"><div><span>Forma de pago</span><strong>{{ order.paymentMethod }}</strong></div><div><span>Cliente</span><strong>{{ order.customer.name }}</strong></div><div><span>Entrega</span><strong>{{ order.delivery.city }}, {{ order.delivery.department }}</strong></div></div>
           <div class="copy-order"><span>Guarda este número para futuras consultas.</span><button type="button" class="copy-button" @click="copyOrder">COPIAR NÚMERO DE PEDIDO</button></div>

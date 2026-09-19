@@ -20,7 +20,7 @@ const submit = async () => {
       body: {
         customer: { name: `${form.firstName} ${form.lastName}`.trim(), firstName: form.firstName, lastName: form.lastName, phone: form.phone, email: form.email },
         delivery: { country: form.country, department: form.department, city: form.city, address: form.address, additional: form.additional },
-        items: cartProducts.value.map(item => ({ slug: item.product!.slug, quantity: item.quantity }))
+        items: cartProducts.value.map(item => ({ slug: item.product!.slug, quantity: item.quantity, size: item.size, color: item.color }))
       }
     })
     cart.items.value = []
@@ -43,7 +43,7 @@ const submit = async () => {
         <div class="form-block"><h2>Datos de entrega</h2><div class="form-row"><label>País<select v-model="form.country" required><option>Colombia</option><option>Venezuela</option><option>Ecuador</option><option>Panamá</option></select></label><label>Departamento<input v-model="form.department" required placeholder="Ej. Córdoba"></label></div><label>Ciudad<input v-model="form.city" required placeholder="Ej. Montería"></label><label>Dirección y complementos<input v-model="form.address" required autocomplete="street-address" placeholder="Calle, carrera, número"></label><label>Información adicional <span>(opcional)</span><textarea v-model="form.additional" rows="3" placeholder="Referencias para encontrar tu dirección"></textarea></label></div>
         <p class="checkout-notice">Enviar esta solicitud no significa que el pedido esté confirmado. Un asesor se comunicará contigo.</p><p v-if="errorMessage" class="form-error">{{ errorMessage }}</p><button class="button is-dark submit-order" :disabled="submitting">{{ submitting ? 'Enviando solicitud...' : 'Enviar solicitud' }} <span>↗</span></button>
       </div>
-      <aside class="order-summary"><h2>Resumen</h2><div v-for="item in cartProducts" :key="item.slug" class="summary-item"><div><strong>{{ item.product!.name }}</strong><small>{{ item.quantity }} × {{ money(item.product!.price) }}</small></div><strong>{{ money(item.product!.price * item.quantity) }}</strong></div><div class="summary-total"><span>Total solicitado</span><strong>{{ money(subtotal) }}</strong></div><p class="summary-note">Pago contra entrega · Un asesor confirmará tu solicitud.</p></aside>
+      <aside class="order-summary"><h2>Resumen</h2><div v-for="item in cartProducts" :key="`${item.slug}-${item.size || ''}-${item.color || ''}`" class="summary-item"><div><strong>{{ item.product!.name }}</strong><small>{{ item.size ? `Talla: ${item.size} · ` : '' }}{{ item.color ? `Color: ${item.color} · ` : '' }}{{ item.quantity }} × {{ money(item.product!.price) }}</small></div><strong>{{ money(item.product!.price * item.quantity) }}</strong></div><div class="summary-total"><span>Total solicitado</span><strong>{{ money(subtotal) }}</strong></div><p class="summary-note">Pago contra entrega · Un asesor confirmará tu solicitud.</p></aside>
     </form>
   </section>
 </template>

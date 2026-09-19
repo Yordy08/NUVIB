@@ -31,7 +31,7 @@ const isAdmin = computed(() => route.path.startsWith('/admin'))
         </div>
       </div>
     </header>
-    <main><NuxtPage /><ProductTrust /></main>
+    <main><NuxtPage /><ProductGallerySlider /><ProductOptionsPanel /><ProductTrust /></main>
     <CartExperience />
     <ConversionExperience />
     <footer class="site-footer">
