@@ -15,6 +15,7 @@
   "dependencies": {
     "bulma": "^1.0.4",
     "cloudinary": "^2.11.0",
+    "colombia-territorial": "^1.1.0",
     "mongodb": "^7.6.0",
     "nuxt": "^4.5.2",
     "vue": "^3.5.42",
