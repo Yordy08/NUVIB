@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
   if (product) {
     await database.collection('reviews').deleteMany({ productId: product._id })
     await database.collection('order_items').deleteMany({ productId: product._id })
+    await database.collection('orders').updateMany({ 'items.productId': product._id }, { $pull: { items: { productId: product._id } } })
     await database.collection('product_audit').deleteMany({ productId: product._id })
     await database.collection('products').deleteOne({ _id: product._id })
     await database.collection('admin_audit').deleteMany({ module: 'products', recordId: product._id })

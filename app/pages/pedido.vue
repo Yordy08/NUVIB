@@ -20,7 +20,7 @@ const submit = async () => {
       body: {
         customer: { name: `${form.firstName} ${form.lastName}`.trim(), firstName: form.firstName, lastName: form.lastName, phone: form.phone, email: form.email },
         delivery: { country: form.country, department: form.department, city: form.city, address: form.address, additional: form.additional },
-        items: cartProducts.value.map(item => ({ slug: item.product!.slug, quantity: item.quantity, size: item.size, color: item.color }))
+         items: cartProducts.value.map(item => ({ productId: item.product!._id, slug: item.product!.slug, quantity: item.quantity, size: item.size, color: item.color }))
       }
     })
     cart.items.value = []

@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
   await destroyCloudinaryImages([...getProductImages(product), ...reviews.flatMap(review => [review.imageUrl, ...(review.imageUrls || [])])])
   await database.collection('reviews').deleteMany({ productId })
   await database.collection('order_items').deleteMany({ productId })
+  await database.collection('orders').updateMany({ 'items.productId': productId }, { $pull: { items: { productId } } })
   await database.collection('product_audit').deleteMany({ productId })
   await database.collection('products').deleteOne({ _id: productId })
   await database.collection('admin_audit').deleteMany({ module: 'products', recordId: productId })
