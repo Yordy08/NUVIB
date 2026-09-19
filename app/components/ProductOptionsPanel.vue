@@ -39,7 +39,7 @@ const addToCart = (goToCheckout = false) => {
       <div class="pdp-actions"><button type="button" class="pdp-buy-button" :disabled="!canAdd" @click="addToCart(true)">COMPRAR AHORA</button><button type="button" class="pdp-cart-button" :disabled="!canAdd" @click="addToCart()">AGREGAR AL CARRITO</button></div>
       <div class="pdp-trust-grid"><span>🚚 <b>Envío</b><small>a todo Colombia</small></span><span>🛡️ <b>Compra</b><small>protegida</small></span><span>💳 <b>Pago contra</b><small>entrega disponible</small></span></div>
       <button type="button" class="pdp-favorite-button" :class="{ 'is-favorite': favorite }" @click="favorite = !favorite">{{ favorite ? '♥' : '♡' }} {{ favorite ? 'Guardado en favoritos' : 'Agregar a favoritos' }}</button>
-      <div v-if="product.description" class="pdp-mobile-description"><p class="eyebrow">Descripción del producto</p><p>{{ product.description }}</p><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
+      <div v-if="product.description" class="pdp-mobile-description"><p class="eyebrow">Descripción del producto</p><div class="pdp-description-content" v-html="product.description"></div><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
     </section>
   </Teleport>
   <ConversionExperience v-if="product" />

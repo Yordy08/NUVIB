@@ -31,6 +31,6 @@ const onTouchEnd = (event: TouchEvent) => { const end = event.changedTouches[0]?
       </div>
     </div>
     <div v-if="lightbox" class="image-lightbox" role="dialog" aria-modal="true" @click.self="lightbox = false"><button type="button" aria-label="Cerrar imagen" @click="lightbox = false">×</button><img :src="currentImage" :alt="product.name"></div>
-    <div class="pdp-gallery-description"><p v-if="product.description" class="eyebrow">Descripción del producto</p><p v-if="product.description">{{ product.description }}</p><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
+    <div class="pdp-gallery-description"><p v-if="product.description" class="eyebrow">Descripción del producto</p><div v-if="product.description" class="pdp-description-content" v-html="product.description"></div><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
   </Teleport>
 </template>
