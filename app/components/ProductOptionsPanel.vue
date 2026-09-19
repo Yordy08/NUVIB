@@ -1,12 +1,13 @@
 <script setup lang="ts">
 const route = useRoute()
 const slug = computed(() => String(route.params.slug || ''))
-const { data: product } = await useFetch<any>(() => slug.value ? `/api/products/${slug.value}` : null)
+const { data: product } = await useFetch<any>(() => slug.value ? `/api/products/${encodeURIComponent(slug.value)}` : null)
 const { selection, setSelection } = useProductOptions(slug.value)
 const size = ref(selection.value.size || '')
 const color = ref(selection.value.color || '')
 const quantity = ref(1)
 const favorite = ref(false)
+const canTeleport = ref(false)
 const cart = useCart()
 const cartFeedback = useCartFeedback()
 const formatPrice = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
@@ -16,6 +17,7 @@ const rating = computed(() => product.value?.rating || product.value?.externalRe
 const reviewCount = computed(() => product.value?.externalReviews?.reviewCount || 0)
 const stock = computed(() => typeof product.value?.stock === 'number' ? product.value.stock : null)
 watch([size, color], () => setSelection({ size: size.value || undefined, color: color.value || undefined }))
+onMounted(() => nextTick(() => { canTeleport.value = true }))
 const canAdd = computed(() => (!product.value?.options?.sizes?.length || size.value) && (!product.value?.options?.colors?.length || color.value))
 const changeQuantity = (amount: number) => { quantity.value = Math.max(1, Math.min(stock.value || 99, quantity.value + amount)) }
 const addToCart = (goToCheckout = false) => {
@@ -27,7 +29,7 @@ const addToCart = (goToCheckout = false) => {
 </script>
 
 <template>
-  <Teleport v-if="product" to=".detail-copy">
+  <Teleport v-if="product && canTeleport" defer to=".detail-copy">
     <section class="pdp-purchase-panel" aria-label="Opciones de compra">
       <div class="pdp-price-block"><div><strong>{{ formatPrice(product.price) }}</strong><del v-if="originalPrice">{{ formatPrice(originalPrice) }}</del><span v-if="discountPercent" class="pdp-discount">-{{ discountPercent }}% OFF</span></div><p v-if="stock !== null && stock > 0 && stock <= 10" class="pdp-urgency">⚡ Quedan pocas unidades en stock</p></div>
       <div v-if="product.options?.colors?.length" class="pdp-option-group"><div class="pdp-option-heading"><strong>Color</strong><span>{{ color || 'Elige una opción' }}</span></div><div class="pdp-swatches"><button v-for="item in product.options.colors" :key="item" type="button" :class="{ 'is-selected': color === item }" :aria-label="`Elegir color ${item}`" @click="color = item"><span></span>{{ item }}</button></div></div>
@@ -37,6 +39,8 @@ const addToCart = (goToCheckout = false) => {
       <div class="pdp-actions"><button type="button" class="pdp-buy-button" :disabled="!canAdd" @click="addToCart(true)">COMPRAR AHORA</button><button type="button" class="pdp-cart-button" :disabled="!canAdd" @click="addToCart()">AGREGAR AL CARRITO</button></div>
       <div class="pdp-trust-grid"><span>🚚 <b>Envío</b><small>a todo Colombia</small></span><span>🛡️ <b>Compra</b><small>protegida</small></span><span>💳 <b>Pago contra</b><small>entrega disponible</small></span></div>
       <button type="button" class="pdp-favorite-button" :class="{ 'is-favorite': favorite }" @click="favorite = !favorite">{{ favorite ? '♥' : '♡' }} {{ favorite ? 'Guardado en favoritos' : 'Agregar a favoritos' }}</button>
+      <div v-if="product.description" class="pdp-mobile-description"><p class="eyebrow">Descripción del producto</p><p>{{ product.description }}</p><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
     </section>
   </Teleport>
+  <ConversionExperience v-if="product" />
 </template>

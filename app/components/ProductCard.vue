@@ -25,13 +25,13 @@ const offerBadges = computed(() => {
 
 <template>
   <article class="product-card">
-    <NuxtLink :to="`/producto/${product.slug}`" class="product-image-wrap">
+    <NuxtLink :to="`/producto/${encodeURIComponent(product.slug)}`" class="product-image-wrap">
       <span v-if="product.tag || discountPercent" class="product-tag">{{ discountPercent ? `-${discountPercent}%` : product.tag }}</span>
       <img :src="product.image" :alt="product.name" loading="lazy" class="product-image">
     </NuxtLink>
     <div class="product-info">
       <p class="eyebrow">{{ product.category }}</p>
-      <NuxtLink :to="`/producto/${product.slug}`" class="product-name">{{ commercialTitle }}</NuxtLink>
+      <NuxtLink :to="`/producto/${encodeURIComponent(product.slug)}`" class="product-name">{{ commercialTitle }}</NuxtLink>
       <div class="price-row"><strong>{{ formatPrice(product.price) }}</strong><div class="price-secondary"><del>{{ formatPrice(originalPrice) }}</del><span class="discount-pill">-{{ discountPercent }}%</span></div></div>
       <div class="product-proof"><span class="product-rating">★ {{ Number(rating).toFixed(1) }}</span><span :class="{ 'product-status': !actualSoldCount }">{{ salesLabel }}</span><span v-if="stock !== null" class="product-stock" :class="{ 'is-empty': stock === 0 }">{{ stock === 0 ? 'Agotado' : `${stock} disponibles` }}</span></div>
       <div class="product-badges"><span v-for="badge in offerBadges" :key="badge">{{ badge }}</span></div>

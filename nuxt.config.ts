@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
   app: {
     head: {
@@ -9,6 +9,9 @@ export default defineNuxtConfig({
       meta: [
         { name: 'description', content: 'Productos seleccionados para hacer tu día más simple.' },
         { name: 'theme-color', content: '#102a43' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/jpeg', href: '/Logo/logotip.jpg' }
       ]
     }
   },

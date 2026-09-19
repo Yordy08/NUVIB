@@ -1,14 +1,15 @@
 <script setup lang="ts">
 const route = useRoute()
-const { data: product, error } = await useFetch<any>(`/api/products/${route.params.slug}`)
-const reviewOrder = ref('recent'); const reviewQuery = computed(() => ({ limit: 10, sort: reviewOrder.value === 'rating' ? 'rating' : reviewOrder.value === 'photos' ? 'photos' : 'recent' })); const { data: reviewData, refresh: refreshReviews } = await useFetch<any>(`/api/products/${route.params.slug}/reviews`, { query: reviewQuery })
-const { data: externalReviews } = await useFetch<any>(`/api/products/${route.params.slug}/reviews`, { query: { source: 'EXTERNA', limit: 6 } })
+const productSlug = computed(() => encodeURIComponent(String(route.params.slug || '')))
+const { data: product, error } = await useFetch<any>(() => productSlug.value ? `/api/products/${productSlug.value}` : null)
+const reviewOrder = ref('recent'); const reviewQuery = computed(() => ({ limit: 10, sort: reviewOrder.value === 'rating' ? 'rating' : reviewOrder.value === 'photos' ? 'photos' : 'recent' })); const { data: reviewData, refresh: refreshReviews } = await useFetch<any>(() => productSlug.value ? `/api/products/${productSlug.value}/reviews` : null, { query: reviewQuery })
+const { data: externalReviews } = await useFetch<any>(() => productSlug.value ? `/api/products/${productSlug.value}/reviews` : null, { query: { source: 'EXTERNA', limit: 6 } })
 const cart = useCart(); const cartFeedback = useCartFeedback(); const quantity = ref(1); const selectedImage = ref(0); const lightbox = ref(false); const touchStart = ref(0); const reviewMessage = ref(''); const reviewError = ref(''); const reviewSending = ref(false); const reviewImage = ref<File | null>(null); const reviewForm = reactive({ customerName: '', rating: 5, comment: '', phone: '', orderNumber: '', recommendation: null as boolean | null })
 const formatPrice = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value)
 if (error.value) throw createError({ statusCode: 404, statusMessage: 'Producto no encontrado' })
 const images = computed(() => product.value?.images?.length ? product.value.images : [product.value?.image || '/Logo/logotip.jpg'])
 const currentImage = computed(() => images.value[selectedImage.value] || images.value[0])
-const { selection } = useProductOptions(String(route.params.slug))
+const { selection } = useProductOptions(String(route.params.slug || ''))
 const addToCart = () => { if (product.value?.options?.sizes?.length && !selection.value.size || product.value?.options?.colors?.length && !selection.value.color) return; for (let index = 0; index < quantity.value; index += 1) cart.add(product.value!.slug, selection.value); cartFeedback.show(product.value!.name) }
 useHead(() => ({ script: [{ type: 'application/ld+json', children: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: product.value?.name, image: images.value, description: product.value?.description, offers: { '@type': 'Offer', priceCurrency: 'COP', price: product.value?.price, availability: 'https://schema.org/InStock' }, ...(reviewData.value?.summary?.total ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: reviewData.value.summary.average, reviewCount: reviewData.value.summary.total } } : {}) }) }] }))
 const selectImage = (index: number) => { selectedImage.value = index }

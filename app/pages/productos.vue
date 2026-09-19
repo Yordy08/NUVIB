@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Product } from '~/data/products'
 const { data: products, pending } = await useFetch<Product[]>('/api/products')
-const query = ref('')
-const selectedCategory = ref('Todas')
+const route = useRoute()
+const query = ref(String(route.query.buscar || ''))
+const selectedCategory = ref(String(route.query.categoria || 'Todas'))
 const categories = computed(() => ['Todas', ...new Set((products.value || []).map(product => product.category))])
 const filteredProducts = computed(() => (products.value || []).filter(product => (selectedCategory.value === 'Todas' || product.category === selectedCategory.value) && product.name.toLowerCase().includes(query.value.toLowerCase())))
 </script>

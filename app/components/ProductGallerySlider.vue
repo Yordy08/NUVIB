@@ -1,10 +1,12 @@
 <script setup lang="ts">
 const route = useRoute()
 const slug = computed(() => String(route.params.slug || ''))
-const { data: product } = await useFetch<any>(() => slug.value ? `/api/products/${slug.value}` : null)
+const { data: product } = await useFetch<any>(() => slug.value ? `/api/products/${encodeURIComponent(slug.value)}` : null)
 const selectedImage = ref(0)
 const lightbox = ref(false)
 const touchStart = ref(0)
+const canTeleport = ref(false)
+onMounted(() => nextTick(() => { canTeleport.value = true }))
 const images = computed(() => product.value?.images?.length ? product.value.images : [product.value?.image || '/Logo/logotip.jpg'])
 const currentImage = computed(() => images.value[selectedImage.value] || images.value[0])
 const selectImage = (index: number) => { selectedImage.value = index }
@@ -15,7 +17,7 @@ const onTouchEnd = (event: TouchEvent) => { const end = event.changedTouches[0]?
 </script>
 
 <template>
-  <Teleport v-if="product" to=".detail-gallery">
+  <Teleport v-if="product && canTeleport" defer to=".detail-gallery">
     <div class="pdp-gallery-slider">
       <div class="pdp-gallery-main" @touchstart="onTouchStart" @touchend="onTouchEnd">
         <span class="pdp-gallery-badge">Más imágenes</span>
@@ -29,5 +31,6 @@ const onTouchEnd = (event: TouchEvent) => { const end = event.changedTouches[0]?
       </div>
     </div>
     <div v-if="lightbox" class="image-lightbox" role="dialog" aria-modal="true" @click.self="lightbox = false"><button type="button" aria-label="Cerrar imagen" @click="lightbox = false">×</button><img :src="currentImage" :alt="product.name"></div>
+    <div class="pdp-gallery-description"><p v-if="product.description" class="eyebrow">Descripción del producto</p><p v-if="product.description">{{ product.description }}</p><div class="nuvib-trust-badge"><span class="icon">🛡️</span><span><strong>Compra segura con NUVIB:</strong> Pagas el valor del producto + envío únicamente cuando lo recibas.</span></div></div>
   </Teleport>
 </template>
