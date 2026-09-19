@@ -3,16 +3,17 @@ import { getDatabase } from '../utils/mongodb'
 import { ORDER_STATUSES } from '../utils/orders'
 import { getActivePromotionalPrice } from '../utils/conversion'
 
-type OrderRequest = { customer?: { name?: string; phone?: string }; delivery?: { department?: string; city?: string; address?: string; additional?: string }; items?: { slug?: string; quantity?: number }[] }
+type OrderRequest = { customer?: { name?: string; firstName?: string; lastName?: string; phone?: string; email?: string }; delivery?: { country?: string; department?: string; city?: string; address?: string; additional?: string }; items?: { slug?: string; quantity?: number }[] }
 
 const clean = (value: unknown, max = 180) => typeof value === 'string' ? value.trim().slice(0, max) : ''
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<OrderRequest>(event)
-  const customer = { name: clean(body?.customer?.name, 100), phone: clean(body?.customer?.phone, 30) }
-  const delivery = { department: clean(body?.delivery?.department, 80), city: clean(body?.delivery?.city, 80), address: clean(body?.delivery?.address, 180), additional: clean(body?.delivery?.additional, 240) }
+  const firstName = clean(body?.customer?.firstName, 80); const lastName = clean(body?.customer?.lastName, 80); const name = clean(body?.customer?.name, 160) || `${firstName} ${lastName}`.trim()
+  const customer = { name, firstName, lastName, phone: clean(body?.customer?.phone, 30), email: clean(body?.customer?.email, 160).toLowerCase() }
+  const delivery = { country: clean(body?.delivery?.country, 60), department: clean(body?.delivery?.department, 80), city: clean(body?.delivery?.city, 80), address: clean(body?.delivery?.address, 180), additional: clean(body?.delivery?.additional, 240) }
   const requested = Array.isArray(body?.items) ? body.items : []
-  if (customer.name.length < 3 || customer.phone.length < 7 || !delivery.department || !delivery.city || !delivery.address || !requested.length) throw createError({ statusCode: 400, statusMessage: 'Completa los datos requeridos para solicitar el pedido' })
+  if (customer.firstName.length < 2 || customer.lastName.length < 2 || customer.phone.length < 7 || !/^\S+@\S+\.\S+$/.test(customer.email) || !delivery.country || !delivery.department || !delivery.city || !delivery.address || !requested.length) throw createError({ statusCode: 400, statusMessage: 'Completa correctamente todos los datos requeridos para solicitar el pedido' })
 
   const database = await getDatabase()
   const slugs = [...new Set(requested.map(item => clean(item.slug, 120)).filter(Boolean))]
