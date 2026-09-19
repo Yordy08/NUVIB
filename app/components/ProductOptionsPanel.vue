@@ -20,6 +20,11 @@ const discountPercent = computed(() => originalPrice.value ? Math.round((1 - pro
 const rating = computed(() => product.value?.rating || product.value?.externalReviews?.rating || 4.8)
 const reviewCount = computed(() => product.value?.externalReviews?.reviewCount || 0)
 const stock = computed(() => typeof product.value?.stock === 'number' ? product.value.stock : null)
+const colorValue = (name: string) => {
+  const normalized = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const colors: Record<string, string> = { azul: '#2563eb', rosa: '#ec4899', gris: '#9ca3af', verde: '#22c55e', rojo: '#ef4444', negro: '#171717', blanco: '#ffffff', amarillo: '#facc15', naranja: '#f97316', morado: '#8b5cf6', cafe: '#92400e', marron: '#92400e', beige: '#d6c2a5' }
+  return colors[normalized] || '#d8c5b4'
+}
 watch([size, color], () => setSelection({ size: size.value || undefined, color: color.value || undefined }))
 onMounted(waitForPurchaseTarget)
 const canAdd = computed(() => (!product.value?.options?.sizes?.length || size.value) && (!product.value?.options?.colors?.length || color.value))
@@ -36,7 +41,7 @@ const addToCart = (goToCheckout = false) => {
   <Teleport v-if="product && canTeleport" defer to=".detail-copy">
     <section class="pdp-purchase-panel" aria-label="Opciones de compra">
       <div class="pdp-price-block"><div><strong>{{ formatPrice(product.price) }}</strong><del v-if="originalPrice">{{ formatPrice(originalPrice) }}</del><span v-if="discountPercent" class="pdp-discount">-{{ discountPercent }}% OFF</span></div><p v-if="stock !== null && stock > 0 && stock <= 10" class="pdp-urgency">⚡ Quedan pocas unidades en stock</p></div>
-      <div v-if="product.options?.colors?.length" class="pdp-option-group"><div class="pdp-option-heading"><strong>Color</strong><span>{{ color || 'Elige una opción' }}</span></div><div class="pdp-swatches"><button v-for="item in product.options.colors" :key="item" type="button" :class="{ 'is-selected': color === item }" :aria-label="`Elegir color ${item}`" @click="color = item"><span></span>{{ item }}</button></div></div>
+      <div v-if="product.options?.colors?.length" class="pdp-option-group"><div class="pdp-option-heading"><strong>Color</strong><span>{{ color || 'Elige una opción' }}</span></div><div class="pdp-swatches"><button v-for="item in product.options.colors" :key="item" type="button" :class="{ 'is-selected': color === item }" :aria-label="`Elegir color ${item}`" @click="color = item"><span :style="{ backgroundColor: colorValue(item) }"></span>{{ item }}</button></div></div>
       <div v-if="product.options?.sizes?.length" class="pdp-option-group"><div class="pdp-option-heading"><strong>Talla</strong><a href="#guia-tallas">Guía de tallas</a></div><div class="pdp-sizes"><button v-for="item in product.options.sizes" :key="item" type="button" :class="{ 'is-selected': size === item }" @click="size = item">{{ item }}</button></div></div>
       <div class="pdp-quantity-row"><strong>Cantidad</strong><div class="pdp-quantity-control"><button type="button" aria-label="Disminuir cantidad" @click="changeQuantity(-1)">−</button><output>{{ quantity }}</output><button type="button" aria-label="Aumentar cantidad" @click="changeQuantity(1)">+</button></div><small v-if="stock !== null">{{ stock }} disponibles</small></div>
       <p v-if="!canAdd" class="pdp-selection-hint">Selecciona las opciones para continuar</p>
