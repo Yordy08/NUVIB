@@ -10,6 +10,10 @@ const favorite = ref(false)
 const canTeleport = ref(false)
 const cart = useCart()
 const cartFeedback = useCartFeedback()
+const waitForPurchaseTarget = () => {
+  if (document.querySelector('.detail-copy')) canTeleport.value = true
+  else window.setTimeout(waitForPurchaseTarget, 50)
+}
 const formatPrice = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
 const originalPrice = computed(() => product.value?.oldPrice && product.value.oldPrice > product.value.price ? product.value.oldPrice : 0)
 const discountPercent = computed(() => originalPrice.value ? Math.round((1 - product.value.price / originalPrice.value) * 100) : 0)
@@ -17,7 +21,7 @@ const rating = computed(() => product.value?.rating || product.value?.externalRe
 const reviewCount = computed(() => product.value?.externalReviews?.reviewCount || 0)
 const stock = computed(() => typeof product.value?.stock === 'number' ? product.value.stock : null)
 watch([size, color], () => setSelection({ size: size.value || undefined, color: color.value || undefined }))
-onMounted(() => nextTick(() => { canTeleport.value = true }))
+onMounted(waitForPurchaseTarget)
 const canAdd = computed(() => (!product.value?.options?.sizes?.length || size.value) && (!product.value?.options?.colors?.length || color.value))
 const changeQuantity = (amount: number) => { quantity.value = Math.max(1, Math.min(stock.value || 99, quantity.value + amount)) }
 const addToCart = (goToCheckout = false) => {

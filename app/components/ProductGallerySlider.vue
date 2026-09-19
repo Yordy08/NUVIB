@@ -6,7 +6,11 @@ const selectedImage = ref(0)
 const lightbox = ref(false)
 const touchStart = ref(0)
 const canTeleport = ref(false)
-onMounted(() => nextTick(() => { canTeleport.value = true }))
+const waitForGalleryTarget = () => {
+  if (document.querySelector('.detail-gallery')) canTeleport.value = true
+  else window.setTimeout(waitForGalleryTarget, 50)
+}
+onMounted(waitForGalleryTarget)
 const images = computed(() => product.value?.images?.length ? product.value.images : [product.value?.image || '/Logo/logotip.jpg'])
 const currentImage = computed(() => images.value[selectedImage.value] || images.value[0])
 const selectImage = (index: number) => { selectedImage.value = index }
